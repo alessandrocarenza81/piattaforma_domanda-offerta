@@ -147,8 +147,9 @@
   </footer>
 
   <script>
-    let companies = [];
-    let candidates = [];
+    // Carica i dati dal Local Storage
+    let companies = JSON.parse(localStorage.getItem('companies')) || [];
+    let candidates = JSON.parse(localStorage.getItem('candidates')) || [];
 
     // Funzione per mostrare/nascondere pagine
     function showPage(pageId) {
@@ -165,6 +166,7 @@
       const companySkills = document.getElementById('companySkills').value;
       if (companyName && companyDescription && companySkills) {
         companies.push({ companyName, companyDescription, companySkills });
+        saveDataToLocalStorage();
         alert('Azienda aggiunta con successo!');
         clearCompanyForm();
         renderAllCompanies();
@@ -181,6 +183,7 @@
       const candidatePhone = document.getElementById('candidatePhone').value;
       if (candidateName && candidateSkills && candidateEmail && candidatePhone) {
         candidates.push({ candidateName, candidateSkills, candidateEmail, candidatePhone });
+        saveDataToLocalStorage();
         alert('Candidato aggiunto con successo!');
         clearCandidateForm();
         renderAllCandidates();
@@ -263,6 +266,12 @@
       }
     }
 
+    // Salva i dati nel Local Storage
+    function saveDataToLocalStorage() {
+      localStorage.setItem('companies', JSON.stringify(companies));
+      localStorage.setItem('candidates', JSON.stringify(candidates));
+    }
+
     // Pulisce il modulo delle aziende
     function clearCompanyForm() {
       document.getElementById('companyName').value = '';
@@ -277,6 +286,12 @@
       document.getElementById('candidateEmail').value = '';
       document.getElementById('candidatePhone').value = '';
     }
+
+    // Carica i dati all'avvio
+    window.onload = () => {
+      renderAllCompanies();
+      renderAllCandidates();
+    };
   </script>
 </body>
 </html>
