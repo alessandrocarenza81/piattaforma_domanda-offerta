@@ -75,37 +75,42 @@
     <a href="#" onclick="showPage('home')">Home</a>
     <a href="#" onclick="showPage('aziende')">Aziende</a>
     <a href="#" onclick="showPage('candidati')">Candidati</a>
+    <a href="#" onclick="showPage('elencoAziende')">Elenco Aziende</a>
+    <a href="#" onclick="showPage('elencoCandidati')">Elenco Candidati</a>
   </nav>
 
   <!-- Home Page -->
   <div id="home" class="container">
     <h2>Benvenuto nella Piattaforma</h2>
-    <input type="text" id="searchInput" placeholder="Cerca offerte per competenza..." onkeyup="filterJobs()">
-    <div id="jobList"></div>
+    <h3>Cerca tra le Aziende</h3>
+    <input type="text" id="searchCompanySkills" placeholder="Cerca aziende per competenza..." onkeyup="filterCompanies()">
+    <div id="companyList"></div>
+    <h3>Cerca tra i Candidati</h3>
+    <input type="text" id="searchCandidateSkills" placeholder="Cerca candidati per competenza..." onkeyup="filterCandidates()">
+    <div id="candidateList"></div>
   </div>
 
   <!-- Aziende Page -->
   <div id="aziende" class="container hidden">
-    <h2>Pubblica un'Offerta di Lavoro</h2>
+    <h2>Inserisci una Nuova Azienda</h2>
     <div class="form-group">
-      <label for="companyName">Azienda</label>
+      <label for="companyName">Nome Azienda</label>
       <input type="text" id="companyName">
     </div>
     <div class="form-group">
-      <label for="jobDescription">Descrizione</label>
-      <textarea id="jobDescription" rows="3"></textarea>
+      <label for="companyDescription">Descrizione</label>
+      <textarea id="companyDescription" rows="3"></textarea>
     </div>
     <div class="form-group">
-      <label for="jobSkills">Competenze Richieste</label>
-      <input type="text" id="jobSkills">
+      <label for="companySkills">Competenze Richieste</label>
+      <input type="text" id="companySkills">
     </div>
-    <button onclick="addJob()">Pubblica</button>
+    <button onclick="addCompany()">Aggiungi Azienda</button>
   </div>
 
   <!-- Candidati Page -->
   <div id="candidati" class="container hidden">
-    <h2>Cerca Offerte di Lavoro</h2>
-    <p>Inserisci i tuoi dati e competenze per trovare annunci compatibili.</p>
+    <h2>Inserisci un Nuovo Candidato</h2>
     <div class="form-group">
       <label for="candidateName">Nome e Cognome</label>
       <input type="text" id="candidateName">
@@ -122,8 +127,19 @@
       <label for="candidatePhone">Telefono</label>
       <input type="tel" id="candidatePhone">
     </div>
-    <button onclick="findMatchingJobs()">Cerca</button>
-    <div id="matchingJobs"></div>
+    <button onclick="addCandidate()">Aggiungi Candidato</button>
+  </div>
+
+  <!-- Elenco Aziende -->
+  <div id="elencoAziende" class="container hidden">
+    <h2>Elenco Aziende</h2>
+    <div id="allCompanies"></div>
+  </div>
+
+  <!-- Elenco Candidati -->
+  <div id="elencoCandidati" class="container hidden">
+    <h2>Elenco Candidati</h2>
+    <div id="allCandidates"></div>
   </div>
 
   <footer>
@@ -131,82 +147,135 @@
   </footer>
 
   <script>
-    let jobs = [];
+    let companies = [];
+    let candidates = [];
 
     // Funzione per mostrare/nascondere pagine
     function showPage(pageId) {
       document.querySelectorAll('.container').forEach(page => page.classList.add('hidden'));
       document.getElementById(pageId).classList.remove('hidden');
+      if (pageId === 'elencoAziende') renderAllCompanies();
+      if (pageId === 'elencoCandidati') renderAllCandidates();
     }
 
-    // Aggiungi un'offerta di lavoro
-    function addJob() {
+    // Aggiungi un'azienda
+    function addCompany() {
       const companyName = document.getElementById('companyName').value;
-      const jobDescription = document.getElementById('jobDescription').value;
-      const jobSkills = document.getElementById('jobSkills').value;
-      if (companyName && jobDescription && jobSkills) {
-        jobs.push({ companyName, jobDescription, jobSkills });
-        alert('Offerta pubblicata con successo!');
-        document.getElementById('companyName').value = '';
-        document.getElementById('jobDescription').value = '';
-        document.getElementById('jobSkills').value = '';
-        renderJobs();
+      const companyDescription = document.getElementById('companyDescription').value;
+      const companySkills = document.getElementById('companySkills').value;
+      if (companyName && companyDescription && companySkills) {
+        companies.push({ companyName, companyDescription, companySkills });
+        alert('Azienda aggiunta con successo!');
+        clearCompanyForm();
+        renderAllCompanies();
       } else {
         alert('Completa tutti i campi.');
       }
     }
 
-    // Renderizza gli annunci di lavoro
-    function renderJobs() {
-      const jobList = document.getElementById('jobList');
-      jobList.innerHTML = '';
-      jobs.forEach((job, index) => {
+    // Aggiungi un candidato
+    function addCandidate() {
+      const candidateName = document.getElementById('candidateName').value;
+      const candidateSkills = document.getElementById('candidateSkills').value;
+      const candidateEmail = document.getElementById('candidateEmail').value;
+      const candidatePhone = document.getElementById('candidatePhone').value;
+      if (candidateName && candidateSkills && candidateEmail && candidatePhone) {
+        candidates.push({ candidateName, candidateSkills, candidateEmail, candidatePhone });
+        alert('Candidato aggiunto con successo!');
+        clearCandidateForm();
+        renderAllCandidates();
+      } else {
+        alert('Completa tutti i campi.');
+      }
+    }
+
+    // Renderizza tutte le aziende
+    function renderAllCompanies() {
+      const allCompaniesDiv = document.getElementById('allCompanies');
+      allCompaniesDiv.innerHTML = '';
+      companies.forEach((company, index) => {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <strong>Azienda: ${job.companyName}</strong><br>
-          Descrizione: ${job.jobDescription}<br>
-          Competenze richieste: ${job.jobSkills}`;
-        jobList.appendChild(card);
+          <strong>Azienda: ${company.companyName}</strong><br>
+          Descrizione: ${company.companyDescription}<br>
+          Competenze richieste: ${company.companySkills}`;
+        allCompaniesDiv.appendChild(card);
       });
     }
 
-    // Filtra gli annunci di lavoro
-    function filterJobs() {
-      const query = document.getElementById('searchInput').value.toLowerCase();
-      const filteredJobs = jobs.filter(job => job.jobSkills.toLowerCase().includes(query));
-      const jobList = document.getElementById('jobList');
-      jobList.innerHTML = '';
-      filteredJobs.forEach(job => {
+    // Renderizza tutti i candidati
+    function renderAllCandidates() {
+      const allCandidatesDiv = document.getElementById('allCandidates');
+      allCandidatesDiv.innerHTML = '';
+      candidates.forEach((candidate, index) => {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <strong>Azienda: ${job.companyName}</strong><br>
-          Descrizione: ${job.jobDescription}<br>
-          Competenze richieste: ${job.jobSkills}`;
-        jobList.appendChild(card);
+          <strong>Nome: ${candidate.candidateName}</strong><br>
+          Competenze: ${candidate.candidateSkills}<br>
+          Email: ${candidate.candidateEmail}<br>
+          Telefono: ${candidate.candidatePhone}`;
+        allCandidatesDiv.appendChild(card);
       });
     }
 
-    // Trova annunci compatibili
-    function findMatchingJobs() {
-      const candidateSkills = document.getElementById('candidateSkills').value.toLowerCase();
-      const matchingJobs = jobs.filter(job => job.jobSkills.toLowerCase().includes(candidateSkills));
-      const matchingJobsDiv = document.getElementById('matchingJobs');
-      matchingJobsDiv.innerHTML = '';
-      if (matchingJobs.length > 0) {
-        matchingJobs.forEach(job => {
+    // Filtra le aziende
+    function filterCompanies() {
+      const query = document.getElementById('searchCompanySkills').value.toLowerCase();
+      const filteredCompanies = companies.filter(company => company.companySkills.toLowerCase().includes(query));
+      const companyListDiv = document.getElementById('companyList');
+      companyListDiv.innerHTML = '';
+      if (filteredCompanies.length > 0) {
+        filteredCompanies.forEach(company => {
           const card = document.createElement('div');
           card.className = 'card';
           card.innerHTML = `
-            <strong>Azienda: ${job.companyName}</strong><br>
-            Descrizione: ${job.jobDescription}<br>
-            Competenze richieste: ${job.jobSkills}`;
-          matchingJobsDiv.appendChild(card);
+            <strong>Azienda: ${company.companyName}</strong><br>
+            Descrizione: ${company.companyDescription}<br>
+            Competenze richieste: ${company.companySkills}`;
+          companyListDiv.appendChild(card);
         });
       } else {
-        matchingJobsDiv.innerHTML = '<p>Nessun annuncio trovato.</p>';
+        companyListDiv.innerHTML = '<p>Nessuna azienda trovata.</p>';
       }
+    }
+
+    // Filtra i candidati
+    function filterCandidates() {
+      const query = document.getElementById('searchCandidateSkills').value.toLowerCase();
+      const filteredCandidates = candidates.filter(candidate => candidate.candidateSkills.toLowerCase().includes(query));
+      const candidateListDiv = document.getElementById('candidateList');
+      candidateListDiv.innerHTML = '';
+      if (filteredCandidates.length > 0) {
+        filteredCandidates.forEach(candidate => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <strong>Nome: ${candidate.candidateName}</strong><br>
+            Competenze: ${candidate.candidateSkills}<br>
+            Email: ${candidate.candidateEmail}<br>
+            Telefono: ${candidate.candidatePhone}`;
+          candidateListDiv.appendChild(card);
+        });
+      } else {
+        candidateListDiv.innerHTML = '<p>Nessun candidato trovato.</p>';
+      }
+    }
+
+    // Pulisce il modulo delle aziende
+    function clearCompanyForm() {
+      document.getElementById('companyName').value = '';
+      document.getElementById('companyDescription').value = '';
+      document.getElementById('companySkills').value = '';
+    }
+
+    // Pulisce il modulo dei candidati
+    function clearCandidateForm() {
+      document.getElementById('candidateName').value = '';
+      document.getElementById('candidateSkills').value = '';
+      document.getElementById('candidateEmail').value = '';
+      document.getElementById('candidatePhone').value = '';
     }
   </script>
 </body>
