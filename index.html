@@ -88,8 +88,12 @@
   <div id="aziende" class="container hidden">
     <h2>Pubblica un'Offerta di Lavoro</h2>
     <div class="form-group">
-      <label for="jobTitle">Titolo</label>
-      <input type="text" id="jobTitle">
+      <label for="companyName">Azienda</label>
+      <input type="text" id="companyName">
+    </div>
+    <div class="form-group">
+      <label for="jobDescription">Descrizione</label>
+      <textarea id="jobDescription" rows="3"></textarea>
     </div>
     <div class="form-group">
       <label for="jobSkills">Competenze Richieste</label>
@@ -101,10 +105,22 @@
   <!-- Candidati Page -->
   <div id="candidati" class="container hidden">
     <h2>Cerca Offerte di Lavoro</h2>
-    <p>Inserisci le tue competenze per trovare annunci compatibili.</p>
+    <p>Inserisci i tuoi dati e competenze per trovare annunci compatibili.</p>
     <div class="form-group">
-      <label for="userSkills">Le Tue Competenze</label>
-      <input type="text" id="userSkills">
+      <label for="candidateName">Nome e Cognome</label>
+      <input type="text" id="candidateName">
+    </div>
+    <div class="form-group">
+      <label for="candidateSkills">Competenze (separate da virgola)</label>
+      <input type="text" id="candidateSkills">
+    </div>
+    <div class="form-group">
+      <label for="candidateEmail">Email</label>
+      <input type="email" id="candidateEmail">
+    </div>
+    <div class="form-group">
+      <label for="candidatePhone">Telefono</label>
+      <input type="tel" id="candidatePhone">
     </div>
     <button onclick="findMatchingJobs()">Cerca</button>
     <div id="matchingJobs"></div>
@@ -125,12 +141,14 @@
 
     // Aggiungi un'offerta di lavoro
     function addJob() {
-      const title = document.getElementById('jobTitle').value;
-      const skills = document.getElementById('jobSkills').value;
-      if (title && skills) {
-        jobs.push({ title, skills });
+      const companyName = document.getElementById('companyName').value;
+      const jobDescription = document.getElementById('jobDescription').value;
+      const jobSkills = document.getElementById('jobSkills').value;
+      if (companyName && jobDescription && jobSkills) {
+        jobs.push({ companyName, jobDescription, jobSkills });
         alert('Offerta pubblicata con successo!');
-        document.getElementById('jobTitle').value = '';
+        document.getElementById('companyName').value = '';
+        document.getElementById('jobDescription').value = '';
         document.getElementById('jobSkills').value = '';
         renderJobs();
       } else {
@@ -145,7 +163,10 @@
       jobs.forEach((job, index) => {
         const card = document.createElement('div');
         card.className = 'card';
-        card.innerHTML = `<strong>${job.title}</strong><br>Competenze richieste: ${job.skills}`;
+        card.innerHTML = `
+          <strong>Azienda: ${job.companyName}</strong><br>
+          Descrizione: ${job.jobDescription}<br>
+          Competenze richieste: ${job.jobSkills}`;
         jobList.appendChild(card);
       });
     }
@@ -153,28 +174,34 @@
     // Filtra gli annunci di lavoro
     function filterJobs() {
       const query = document.getElementById('searchInput').value.toLowerCase();
-      const filteredJobs = jobs.filter(job => job.skills.toLowerCase().includes(query));
+      const filteredJobs = jobs.filter(job => job.jobSkills.toLowerCase().includes(query));
       const jobList = document.getElementById('jobList');
       jobList.innerHTML = '';
       filteredJobs.forEach(job => {
         const card = document.createElement('div');
         card.className = 'card';
-        card.innerHTML = `<strong>${job.title}</strong><br>Competenze richieste: ${job.skills}`;
+        card.innerHTML = `
+          <strong>Azienda: ${job.companyName}</strong><br>
+          Descrizione: ${job.jobDescription}<br>
+          Competenze richieste: ${job.jobSkills}`;
         jobList.appendChild(card);
       });
     }
 
     // Trova annunci compatibili
     function findMatchingJobs() {
-      const userSkills = document.getElementById('userSkills').value.toLowerCase();
-      const matchingJobs = jobs.filter(job => job.skills.toLowerCase().includes(userSkills));
+      const candidateSkills = document.getElementById('candidateSkills').value.toLowerCase();
+      const matchingJobs = jobs.filter(job => job.jobSkills.toLowerCase().includes(candidateSkills));
       const matchingJobsDiv = document.getElementById('matchingJobs');
       matchingJobsDiv.innerHTML = '';
       if (matchingJobs.length > 0) {
         matchingJobs.forEach(job => {
           const card = document.createElement('div');
           card.className = 'card';
-          card.innerHTML = `<strong>${job.title}</strong><br>Competenze richieste: ${job.skills}`;
+          card.innerHTML = `
+            <strong>Azienda: ${job.companyName}</strong><br>
+            Descrizione: ${job.jobDescription}<br>
+            Competenze richieste: ${job.jobSkills}`;
           matchingJobsDiv.appendChild(card);
         });
       } else {
