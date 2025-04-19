@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Piattaforma Lavoro</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+    }
+    header {
+      background-color: #0073e6;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      background-color: #005bb5;
+    }
+    nav a {
+      color: white;
+      padding: 1rem 2rem;
+      text-decoration: none;
+    }
+    nav a:hover {
+      background-color: #004c99;
+    }
+    .container {
+      padding: 2rem;
+    }
+    .card {
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .hidden {
+      display: none;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background-color: #0073e6;
+      color: white;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Piattaforma Domanda e Offerta di Lavoro</h1>
+  </header>
+  <nav>
+    <a href="#" onclick="showPage('home')">Home</a>
+    <a href="#" onclick="showPage('aziende')">Aziende</a>
+    <a href="#" onclick="showPage('candidati')">Candidati</a>
+  </nav>
+
+  <!-- Home Page -->
+  <div id="home" class="container">
+    <h2>Benvenuto nella Piattaforma</h2>
+    <input type="text" id="searchInput" placeholder="Cerca offerte per competenza..." onkeyup="filterJobs()">
+    <div id="jobList"></div>
+  </div>
+
+  <!-- Aziende Page -->
+  <div id="aziende" class="container hidden">
+    <h2>Pubblica un'Offerta di Lavoro</h2>
+    <div class="form-group">
+      <label for="jobTitle">Titolo</label>
+      <input type="text" id="jobTitle">
+    </div>
+    <div class="form-group">
+      <label for="jobSkills">Competenze Richieste</label>
+      <input type="text" id="jobSkills">
+    </div>
+    <button onclick="addJob()">Pubblica</button>
+  </div>
+
+  <!-- Candidati Page -->
+  <div id="candidati" class="container hidden">
+    <h2>Cerca Offerte di Lavoro</h2>
+    <p>Inserisci le tue competenze per trovare annunci compatibili.</p>
+    <div class="form-group">
+      <label for="userSkills">Le Tue Competenze</label>
+      <input type="text" id="userSkills">
+    </div>
+    <button onclick="findMatchingJobs()">Cerca</button>
+    <div id="matchingJobs"></div>
+  </div>
+
+  <footer>
+    &copy; 2025 Piattaforma Lavoro - Leader Scc
+  </footer>
+
+  <script>
+    let jobs = [];
+
+    // Funzione per mostrare/nascondere pagine
+    function showPage(pageId) {
+      document.querySelectorAll('.container').forEach(page => page.classList.add('hidden'));
+      document.getElementById(pageId).classList.remove('hidden');
+    }
+
+    // Aggiungi un'offerta di lavoro
+    function addJob() {
+      const title = document.getElementById('jobTitle').value;
+      const skills = document.getElementById('jobSkills').value;
+      if (title && skills) {
+        jobs.push({ title, skills });
+        alert('Offerta pubblicata con successo!');
+        document.getElementById('jobTitle').value = '';
+        document.getElementById('jobSkills').value = '';
+        renderJobs();
+      } else {
+        alert('Completa tutti i campi.');
+      }
+    }
+
+    // Renderizza gli annunci di lavoro
+    function renderJobs() {
+      const jobList = document.getElementById('jobList');
+      jobList.innerHTML = '';
+      jobs.forEach((job, index) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<strong>${job.title}</strong><br>Competenze richieste: ${job.skills}`;
+        jobList.appendChild(card);
+      });
+    }
+
+    // Filtra gli annunci di lavoro
+    function filterJobs() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filteredJobs = jobs.filter(job => job.skills.toLowerCase().includes(query));
+      const jobList = document.getElementById('jobList');
+      jobList.innerHTML = '';
+      filteredJobs.forEach(job => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<strong>${job.title}</strong><br>Competenze richieste: ${job.skills}`;
+        jobList.appendChild(card);
+      });
+    }
+
+    // Trova annunci compatibili
+    function findMatchingJobs() {
+      const userSkills = document.getElementById('userSkills').value.toLowerCase();
+      const matchingJobs = jobs.filter(job => job.skills.toLowerCase().includes(userSkills));
+      const matchingJobsDiv = document.getElementById('matchingJobs');
+      matchingJobsDiv.innerHTML = '';
+      if (matchingJobs.length > 0) {
+        matchingJobs.forEach(job => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `<strong>${job.title}</strong><br>Competenze richieste: ${job.skills}`;
+          matchingJobsDiv.appendChild(card);
+        });
+      } else {
+        matchingJobsDiv.innerHTML = '<p>Nessun annuncio trovato.</p>';
+      }
+    }
+  </script>
+</body>
+</html>
