@@ -39,6 +39,22 @@
       border-radius: 8px;
       padding: 1rem;
       margin-bottom: 1rem;
+      position: relative;
+    }
+    .card button {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background-color: #ff4d4d;
+      color: white;
+      border: none;
+      padding: 0.3rem 0.6rem;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .card button.edit {
+      background-color: #0073e6;
+      margin-right: 0.5rem;
     }
     .form-group {
       margin-bottom: 1rem;
@@ -105,7 +121,7 @@
       <label for="companySkills">Competenze Richieste</label>
       <input type="text" id="companySkills">
     </div>
-    <button onclick="addCompany()">Aggiungi Azienda</button>
+    <button onclick="addOrUpdateCompany()">Aggiungi/Aggiorna Azienda</button>
   </div>
 
   <!-- Candidati Page -->
@@ -127,7 +143,7 @@
       <label for="candidatePhone">Telefono</label>
       <input type="tel" id="candidatePhone">
     </div>
-    <button onclick="addCandidate()">Aggiungi Candidato</button>
+    <button onclick="addOrUpdateCandidate()">Aggiungi/Aggiorna Candidato</button>
   </div>
 
   <!-- Elenco Aziende -->
@@ -151,6 +167,9 @@
     let companies = JSON.parse(localStorage.getItem('companies')) || [];
     let candidates = JSON.parse(localStorage.getItem('candidates')) || [];
 
+    let editingCompanyId = null;
+    let editingCandidateId = null;
+
     // Funzione per mostrare/nascondere pagine
     function showPage(pageId) {
       document.querySelectorAll('.container').forEach(page => page.classList.add('hidden'));
@@ -159,36 +178,50 @@
       if (pageId === 'elencoCandidati') renderAllCandidates();
     }
 
-    // Aggiungi un'azienda
-    function addCompany() {
+    // Aggiungi o aggiorna un'azienda
+    function addOrUpdateCompany() {
       const companyName = document.getElementById('companyName').value;
       const companyDescription = document.getElementById('companyDescription').value;
       const companySkills = document.getElementById('companySkills').value;
-      if (companyName && companyDescription && companySkills) {
-        companies.push({ companyName, companyDescription, companySkills });
-        saveDataToLocalStorage();
-        alert('Azienda aggiunta con successo!');
-        clearCompanyForm();
-        renderAllCompanies();
-      } else {
+
+      if (!companyName || !companyDescription || !companySkills) {
         alert('Completa tutti i campi.');
+        return;
       }
+
+      if (editingCompanyId !== null) {
+        // Modifica l'azienda esistente
+        const index = companies.findIndex(company => company.id === editingCompanyId);
+        companies[index] = { id: editingCompanyId, companyName, companyDescription, companySkills };
+        editingCompanyId = null;
+        alert('Azienda aggiornata con successo!');
+      } else {
+        // Aggiungi una nuova azienda
+        const newCompany = { id: Date.now(), companyName, companyDescription, companySkills };
+        companies.push(newCompany);
+        alert('Azienda aggiunta con successo!');
+      }
+
+      saveDataToLocalStorage();
+      clearCompanyForm();
+      renderAllCompanies();
     }
 
-    // Aggiungi un candidato
-    function addCandidate() {
-      const candidateName = document.getElementById('candidateName').value;
-      const candidateSkills = document.getElementById('candidateSkills').value;
-      const candidateEmail = document.getElementById('candidateEmail').value;
-      const candidatePhone = document.getElementById('candidatePhone').value;
-      if (candidateName && candidateSkills && candidateEmail && candidatePhone) {
-        candidates.push({ candidateName, candidateSkills, candidateEmail, candidatePhone });
-        saveDataToLocalStorage();
-        alert('Candidato aggiunto con successo!');
-        clearCandidateForm();
-        renderAllCandidates();
-      } else {
-        alert('Completa tutti i campi.');
+    // Rimuovi un'azienda
+    function removeCompany(id) {
+      companies = companies.filter(company => company.id !== id);
+      saveDataToLocalStorage();
+      renderAllCompanies();
+    }
+
+    // Modifica un'azienda
+    function editCompany(id) {
+      const company = companies.find(company => company.id === id);
+      if (company) {
+        document.getElementById('companyName').value = company.companyName;
+        document.getElementById('companyDescription').value = company.companyDescription;
+        document.getElementById('companySkills').value = company.companySkills;
+        editingCompanyId = id;
       }
     }
 
@@ -196,22 +229,80 @@
     function renderAllCompanies() {
       const allCompaniesDiv = document.getElementById('allCompanies');
       allCompaniesDiv.innerHTML = '';
-      companies.forEach((company, index) => {
+      companies.forEach((company) => {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
           <strong>Azienda: ${company.companyName}</strong><br>
           Descrizione: ${company.companyDescription}<br>
           Competenze richieste: ${company.companySkills}`;
+        const editButton = document.createElement('button');
+        editButton.className = 'edit';
+        editButton.innerText = 'Modifica';
+        editButton.onclick = () => editCompany(company.id);
+        const removeButton = document.createElement('button');
+        removeButton.innerText = 'Rimuovi';
+        removeButton.onclick = () => removeCompany(company.id);
+        card.appendChild(editButton);
+        card.appendChild(removeButton);
         allCompaniesDiv.appendChild(card);
       });
+    }
+
+    // Aggiungi o aggiorna un candidato
+    function addOrUpdateCandidate() {
+      const candidateName = document.getElementById('candidateName').value;
+      const candidateSkills = document.getElementById('candidateSkills').value;
+      const candidateEmail = document.getElementById('candidateEmail').value;
+      const candidatePhone = document.getElementById('candidatePhone').value;
+
+      if (!candidateName || !candidateSkills || !candidateEmail || !candidatePhone) {
+        alert('Completa tutti i campi.');
+        return;
+      }
+
+      if (editingCandidateId !== null) {
+        // Modifica il candidato esistente
+        const index = candidates.findIndex(candidate => candidate.id === editingCandidateId);
+        candidates[index] = { id: editingCandidateId, candidateName, candidateSkills, candidateEmail, candidatePhone };
+        editingCandidateId = null;
+        alert('Candidato aggiornato con successo!');
+      } else {
+        // Aggiungi un nuovo candidato
+        const newCandidate = { id: Date.now(), candidateName, candidateSkills, candidateEmail, candidatePhone };
+        candidates.push(newCandidate);
+        alert('Candidato aggiunto con successo!');
+      }
+
+      saveDataToLocalStorage();
+      clearCandidateForm();
+      renderAllCandidates();
+    }
+
+    // Rimuovi un candidato
+    function removeCandidate(id) {
+      candidates = candidates.filter(candidate => candidate.id !== id);
+      saveDataToLocalStorage();
+      renderAllCandidates();
+    }
+
+    // Modifica un candidato
+    function editCandidate(id) {
+      const candidate = candidates.find(candidate => candidate.id === id);
+      if (candidate) {
+        document.getElementById('candidateName').value = candidate.candidateName;
+        document.getElementById('candidateSkills').value = candidate.candidateSkills;
+        document.getElementById('candidateEmail').value = candidate.candidateEmail;
+        document.getElementById('candidatePhone').value = candidate.candidatePhone;
+        editingCandidateId = id;
+      }
     }
 
     // Renderizza tutti i candidati
     function renderAllCandidates() {
       const allCandidatesDiv = document.getElementById('allCandidates');
       allCandidatesDiv.innerHTML = '';
-      candidates.forEach((candidate, index) => {
+      candidates.forEach((candidate) => {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
@@ -219,51 +310,17 @@
           Competenze: ${candidate.candidateSkills}<br>
           Email: ${candidate.candidateEmail}<br>
           Telefono: ${candidate.candidatePhone}`;
+        const editButton = document.createElement('button');
+        editButton.className = 'edit';
+        editButton.innerText = 'Modifica';
+        editButton.onclick = () => editCandidate(candidate.id);
+        const removeButton = document.createElement('button');
+        removeButton.innerText = 'Rimuovi';
+        removeButton.onclick = () => removeCandidate(candidate.id);
+        card.appendChild(editButton);
+        card.appendChild(removeButton);
         allCandidatesDiv.appendChild(card);
       });
-    }
-
-    // Filtra le aziende
-    function filterCompanies() {
-      const query = document.getElementById('searchCompanySkills').value.toLowerCase();
-      const filteredCompanies = companies.filter(company => company.companySkills.toLowerCase().includes(query));
-      const companyListDiv = document.getElementById('companyList');
-      companyListDiv.innerHTML = '';
-      if (filteredCompanies.length > 0) {
-        filteredCompanies.forEach(company => {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            <strong>Azienda: ${company.companyName}</strong><br>
-            Descrizione: ${company.companyDescription}<br>
-            Competenze richieste: ${company.companySkills}`;
-          companyListDiv.appendChild(card);
-        });
-      } else {
-        companyListDiv.innerHTML = '<p>Nessuna azienda trovata.</p>';
-      }
-    }
-
-    // Filtra i candidati
-    function filterCandidates() {
-      const query = document.getElementById('searchCandidateSkills').value.toLowerCase();
-      const filteredCandidates = candidates.filter(candidate => candidate.candidateSkills.toLowerCase().includes(query));
-      const candidateListDiv = document.getElementById('candidateList');
-      candidateListDiv.innerHTML = '';
-      if (filteredCandidates.length > 0) {
-        filteredCandidates.forEach(candidate => {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            <strong>Nome: ${candidate.candidateName}</strong><br>
-            Competenze: ${candidate.candidateSkills}<br>
-            Email: ${candidate.candidateEmail}<br>
-            Telefono: ${candidate.candidatePhone}`;
-          candidateListDiv.appendChild(card);
-        });
-      } else {
-        candidateListDiv.innerHTML = '<p>Nessun candidato trovato.</p>';
-      }
     }
 
     // Salva i dati nel Local Storage
